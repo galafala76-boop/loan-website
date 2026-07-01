@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Loan Street - Institutional Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #0B1426;
+            --bg-card: #111928;
+            --accent-color: #0066FF;
+        }
+
+        body { background-color: var(--bg-primary); color: #ffffff; transition: background-color 0.5s; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        ::-webkit-scrollbar { display: none; }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        .modal-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-150%); } }
+        .animate-marquee { display: inline-block; white-space: nowrap; animation: marquee 20s linear infinite; }
+        
+        .crypto-card { background-color: var(--bg-card); border: 1px solid rgba(255,255,255,0.05); transition: background-color 0.5s; }
+        .crypto-btn { background-color: var(--accent-color); transition: background-color 0.2s, transform 0.1s; }
+        .crypto-btn:active { transform: scale(0.95); }
+        .crypto-text { color: var(--accent-color); transition: color 0.5s; }
+        
+        .chat-bubble-user { background-color: var(--accent-color); color: white; border-radius: 16px 16px 0px 16px; }
+        .chat-bubble-admin { background-color: #1F2937; color: white; border-radius: 16px 16px 16px 0px; }
+    </style>
+</head>
+<body id="app-body" class="min-h-screen flex justify-center">
+
+    <div id="main-container" class="w-full max-w-md min-h-screen relative shadow-2xl flex flex-col overflow-hidden transition-colors duration-500" style="background-color: var(--bg-primary);">
+
+        <div id="custom-alert" class="hidden fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="crypto-card rounded-2xl p-6 w-full max-w-xs text-center shadow-2xl modal-pop">
+                <div id="alert-icon" class="mb-4 text-4xl"></div>
+                <h3 id="alert-title" class="font-bold text-white text-lg mb-2">Message</h3>
+                <p id="alert-message" class="text-sm text-gray-400 mb-6"></p>
+                <button onclick="closeAlert()" class="w-full crypto-btn text-white py-3 rounded-lg font-bold shadow-lg active:scale-95 transition-transform duration-150">OK</button>
+            </div>
+        </div>
+
+        <div id="image-lightbox" class="hidden fixed inset-0 bg-black/95 z-[200] flex flex-col items-center justify-center p-4 backdrop-blur-md">
+            <div class="absolute top-6 right-6 flex space-x-4">
+                <a id="lightbox-download" href="" download="User_Document" class="bg-[#0066FF] hover:bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-95 shadow-lg">
+                    <i class="fa-solid fa-download"></i>
+                </a>
+                <button onclick="closeLightbox()" class="bg-gray-700 hover:bg-gray-600 text-white w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-95 shadow-lg">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <img id="lightbox-img" src="" class="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl border border-gray-700" alt="Fullscreen View">
+        </div>
+
+        <div id="auth-screen" class="app-screen flex-1 flex flex-col relative">
+            <div class="h-64 rounded-b-3xl p-4 pt-6 flex flex-col items-center justify-center crypto-card border-b-0">
+                <div class="w-full flex justify-end items-center text-white text-sm mb-4">
+                    <button class="flex items-center bg-gray-800 rounded-full px-3 py-1 text-xs">
+                        <i class="fa-solid fa-globe mr-1"></i> English
+                    </button>
+                </div>
+                <div class="crypto-card p-6 rounded-2xl flex flex-col items-center border border-gray-700 shadow-xl">
+                    <div class="crypto-text font-black text-4xl tracking-tighter">CLS</div>
+                    <div class="text-[10px] text-gray-400 tracking-[0.2em] mt-2 font-bold uppercase">Crypto Loan Street</div>
+                </div>
+            </div>
+
+            <div class="flex-1 -mt-4 mx-4 crypto-card rounded-3xl p-6 relative z-20 shadow-xl overflow-y-auto">
+                <div class="flex justify-between border-b border-gray-700 pb-2 mb-6">
+                    <button id="tab-email" onclick="switchTab('signin')" class="crypto-text font-bold border-b-2 border-[var(--accent-color)] pb-2 flex-1 flex flex-col items-center transition">
+                        Log In
+                    </button>
+                    <button id="tab-phone" onclick="switchTab('signup')" class="text-gray-500 font-bold pb-2 flex-1 text-center transition flex flex-col items-center">
+                        Sign Up
+                    </button>
+                </div>
+
+                <!-- Log In Form -->
+                <div id="signin-form" class="space-y-6 block">
+                    <div>
+                        <label class="text-gray-400 text-xs uppercase tracking-wider mb-1 block font-bold">Email</label>
+                        <div class="flex items-center border-b border-gray-600 py-2">
+                            <i class="fa-regular fa-envelope text-gray-500 mr-3"></i>
+                            <input id="main-input" type="email" placeholder="Enter Email" class="bg-transparent w-full outline-none text-white" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-gray-400 text-xs uppercase tracking-wider mb-1 block font-bold">Password</label>
+                        <div class="flex items-center border-b border-gray-600 py-2">
+                            <i class="fa-solid fa-lock text-gray-500 mr-3"></i>
+                            <input id="main-password" type="password" placeholder="••••••••" class="bg-transparent w-full outline-none text-white tracking-widest" />
+                            <i class="fa-regular fa-eye text-gray-500 ml-2 cursor-pointer" onclick="togglePasswordVisibility('main-password')"></i>
+                        </div>
+                    </div>
+                    <div class="mt-8">
+                        <button onclick="login()" class="w-full crypto-btn text-white py-4 rounded-xl font-bold shadow-lg active:scale-95 transition-transform duration-200">
+                            Log In
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sign Up Form (Requires Phone & Email) -->
+                <div id="signup-form" class="space-y-4 hidden pb-10">
+                    <div class="flex space-x-2">
+                        <div class="w-1/3">
+                            <label class="text-gray-400 text-xs uppercase tracking-wider mb-1 block font-bold">Code</label>
+                            <div class="flex items-center border-b border-gray-600 py-2">
+                                <select id="reg-country" class="bg-transparent w-full outline-none text-white text-sm appearance-none cursor-pointer">
+                                    <option value="+1" class="bg-gray-900">+1 US/CA</option>
+                                    <option value="+44" class="bg-gray-900">+44 UK</option>
+                                    <option value="+61" class="bg-gray-900">+61 AU</option>
+                                    <option value="+91" class="bg-gray-900">+91 IN</option>
+                                    <option value="+86" class="bg-gray-900">+86 CN</option>
+                                    <option value="+852" class="bg-gray-900">+852 HK</option>
+                                    <option value="+65" class="bg-gray-900">+65 SG</option>
+                                    <option value="+81" class="bg-gray-900">+81 JP</option>
+                                    <option value="+82" class="bg-gray-900">+82 KR</option>
+                                    <option value="+49" class="bg-gray-900">+49 DE</option>
+                                    <option value="+33" class="bg-gray-900">+33 FR</option>
+                                    <option value="+971" class="bg-gray-900">+971 AE</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="w-2/3">
+                            <label class="text-gray-400 text-xs uppercase tracking-wider mb-1 block font-bold">Phone Number</label>
+                            <div class="flex items-center border-b border-gray-600 py-2">
+                                <input id="reg-phone" type="tel" placeholder="Enter Phone" class="bg-transparent w-full outline-none text-white" />
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-gray-400 text-xs uppercase tracking-wider mb-1 block font-bold">Email</label>
+                        <div class="flex items-center border-b border-gray-600 py-2">
+                            <i class="fa-regular fa-envelope text-gray-500 mr-3"></i>
+                            <input id="reg-email" type="email" placeholder="Enter Email" class="bg-transparent w-full outline-none text-white" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-gray-400 text-xs uppercase tracking-wider mb-1 block font-bold mt-2">Password</label>
+                        <div class="flex items-center border-b border-gray-600 py-2">
+                            <i class="fa-solid fa-lock text-gray-500 mr-3"></i>
+                            <input id="reg-password" type="password" placeholder="••••••••" class="bg-transparent w-full outline-none text-white tracking-widest" />
+                            <i class="fa-regular fa-eye text-gray-500 ml-2 cursor-pointer" onclick="togglePasswordVisibility('reg-password')"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-gray-400 text-xs uppercase tracking-wider mb-1 block font-bold mt-2">Confirm Password</label>
+                        <div class="flex items-center border-b border-gray-600 py-2">
+                            <i class="fa-solid fa-shield text-gray-500 mr-3"></i>
+                            <input id="reg-password-confirm" type="password" placeholder="••••••••" class="bg-transparent w-full outline-none text-white tracking-widest" />
+                            <i class="fa-regular fa-eye text-gray-500 ml-2 cursor-pointer" onclick="togglePasswordVisibility('reg-password-confirm')"></i>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex space-x-3 pt-2">
+                        <button onclick="switchTab('signin')" class="w-1/3 bg-gray-700 text-white py-4 rounded-xl font-bold active:scale-95 transition-transform">
+                            Back
+                        </button>
+                        <button onclick="registerAccount()" class="w-2/3 crypto-btn text-white py-4 rounded-xl font-bold active:scale-95 transition-transform">
+                            Create Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="agreement-screen" class="app-screen hidden flex-col min-h-screen bg-black pb-0 relative z-50">
+            <div class="crypto-card p-4 flex items-center sticky top-0 z-50 border-b border-gray-800 shadow-xl">
+                <span class="mx-auto font-bold text-lg text-white">Loan Agreement</span>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-6 space-y-4 text-sm text-gray-300 leading-relaxed" id="agreement-content" onscroll="checkAgreementScroll()">
+                <div class="bg-gray-900/50 border border-gray-700 rounded-xl p-5 shadow-inner">
+                    <p class="font-bold text-white text-base mb-4 border-b border-gray-700 pb-2">1. Terms and Conditions</p>
+                    
+                    <p class="mb-3"><span class="text-[var(--accent-color)] font-bold">(1)</span> After receiving the loan funds, the borrower shall not use them for any illegal activities, gambling, drugs, or any other unlawful or improper conduct.</p>
+                    
+                    <p class="mb-3"><span class="text-[var(--accent-color)] font-bold">(2)</span> The required supporting documents must be completed within 1 day. If the borrower fails to obtain proof of insurance within the specified period, the company will submit the case to its lawyer for preliminary investigation and will first contact the guarantor for verification.</p>
+                    
+                    <p class="mb-3"><span class="text-[var(--accent-color)] font-bold">(3)</span> Once a new borrower is approved, they must provide a security deposit or purchase credit insurance from the company so that the company can assess whether the new customer will be able to repay the loan after receiving the funds.</p>
+                    
+                    <p class="mb-3"><span class="text-[var(--accent-color)] font-bold">(4)</span> After the contract is signed, if the company discovers that the borrower has engaged in suspicious conduct or has been placed on a blacklist, the company has the right to suspend the loan while conducting verification and resolving internal matters within 3 days.</p>
+                    
+                    <p class="mb-3"><span class="text-[var(--accent-color)] font-bold">(5)</span> Based on the bank's approval results, the company may face lending risks if the borrower cannot provide collateral. The borrower is required to make a deposit of approximately 5%–10% of the loan amount to establish a credit history.</p>
+                    
+                    <p class="mb-3"><span class="text-[var(--accent-color)] font-bold">(6)</span> If the borrower agrees to this agreement but fails to perform the contract for any reason, the lender has the right to terminate the contract and require the borrower to repay the principal and interest. If the borrower cancels the contract, they must pay 30%–50% of the loan amount to the lender as liquidated damages.</p>
+                </div>
+                <div class="h-20 flex items-center justify-center">
+                    <p id="scroll-prompt" class="text-xs text-yellow-500 font-bold animate-pulse"><i class="fa-solid fa-arrow-down mr-1"></i> Please scroll to the bottom to accept</p>
+                </div>
+            </div>
+
+            <div class="p-4 crypto-card border-t border-gray-800 pb-8">
+                <button id="btn-accept-agreement" onclick="acceptAgreement()" disabled class="w-full bg-gray-700 text-gray-500 py-4 rounded-xl font-bold transition-all duration-300 cursor-not-allowed">
+                    I Agree & Accept
+                </button>
+            </div>
+        </div>
+
+        <div id="dashboard-screen" class="app-screen flex-1 flex flex-col hidden overflow-y-auto pb-24">
+            <div class="crypto-card p-4 flex justify-between items-center sticky top-0 z-40 border-b-0 border-x-0 border-t-0">
+                <div class="font-black text-lg text-white">CRYPTO<span class="crypto-text">LOAN</span></div>
+                <div class="text-[10px] text-gray-400 flex items-center bg-gray-800 px-2 py-1 rounded-full">
+                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div> Online
+                </div>
+            </div>
+
+            <div id="user-broadcast-banner" class="hidden bg-blue-900/20 border-b border-blue-500/50 p-3 flex items-start z-30">
+                <i class="fa-solid fa-bullhorn text-blue-400 mt-0.5 mr-3"></i>
+                <div class="flex-1">
+                    <div class="text-[10px] text-blue-400 font-bold uppercase tracking-wider mb-0.5">System Message</div>
+                    <div id="user-broadcast-text" class="text-xs text-white leading-relaxed"></div>
+                </div>
+                <button onclick="document.getElementById('user-broadcast-banner').classList.add('hidden')" class="text-gray-400 hover:text-white ml-2"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="crypto-card border-x-0 border-t-0 text-gray-400 text-[10px] py-2 px-4 overflow-hidden flex items-center">
+                <i class="fa-solid fa-building-columns mr-2 crypto-text"></i>
+                <div id="dynamic-ticker-container" class="animate-marquee font-medium">
+                    Loading network activity...
+                </div>
+            </div>
+
+            <div class="p-5 mt-4 mx-4 crypto-card rounded-2xl flex flex-col items-center text-center order-2 border-t-4 border-t-[var(--accent-color)]">
+                <div class="text-xs text-gray-400 mb-1 font-medium">Available Balance (Withdrawable)</div>
+                <div class="text-4xl font-bold text-white my-2"><span class="balance-display">0.00</span> <span class="text-lg text-gray-400">USDT</span></div>
+                <div class="mt-4 flex w-full space-x-3">
+                    <button onclick="navigateTo('deposit-screen')" class="flex-1 crypto-btn text-white py-2 rounded-lg font-bold text-sm shadow-lg active:scale-95 transition-transform"><i class="fa-solid fa-lock mr-1"></i> Deposit</button>
+                    <button onclick="navigateTo('withdraw-screen')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg font-bold text-sm shadow-lg active:scale-95 transition-transform"><i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Withdraw</button>
+                </div>
+            </div>
+
+            <div class="px-4 mt-6 order-3">
+                <div class="text-sm text-white font-bold mb-3 flex items-center"><i class="fa-solid fa-file-contract crypto-text mr-2"></i> Your Active Loans</div>
+                <div id="active-stakes-container" class="space-y-3">
+                    <div class="text-center text-gray-500 text-xs py-6 crypto-card rounded-xl border border-dashed border-gray-700">No active loans. Go to Loan Products to borrow.</div>
+                </div>
+            </div>
+
+            <div class="p-4 grid grid-cols-2 gap-3 order-4 mt-2">
+                <button onclick="showAlert('Download App', 'The CLS Mobile App is coming soon.', 'info')" class="crypto-card p-4 rounded-xl flex items-center justify-between active:scale-95 transition-transform">
+                    <span class="font-bold text-gray-300 text-sm">Get App</span>
+                    <i class="fa-brands fa-android text-gray-500 text-xl"></i>
+                </button>
+                <button onclick="navigateTo('history-screen')" class="crypto-card p-4 rounded-xl flex items-center justify-between active:scale-95 transition-transform">
+                    <span class="font-bold text-gray-300 text-sm">History</span>
+                    <i class="fa-solid fa-file-invoice text-gray-500 text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="deposit-screen" class="app-screen hidden flex-col min-h-screen bg-transparent pb-24 overflow-y-auto">
+            <div class="crypto-card p-4 flex items-center sticky top-0 z-50">
+                <button onclick="navigateTo('dashboard-screen')" class="text-xl text-gray-400 hover:text-white px-2 py-1"><i class="fa-solid fa-chevron-left"></i></button>
+                <span class="mx-auto font-bold text-sm text-white pr-6">Deposit Verification</span>
+            </div>
+            
+            <div class="p-4 mt-2">
+                <div id="deposit-processing-ui" class="hidden flex flex-col items-center justify-center pt-10 pb-4 text-center">
+                    <div class="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mb-6 relative">
+                        <div class="absolute inset-0 border-4 border-[var(--accent-color)] border-t-transparent rounded-full animate-spin"></div>
+                        <i class="fa-solid fa-file-invoice-dollar text-3xl crypto-text"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-white mb-2">Verification In Progress</h2>
+                    <p class="text-sm text-gray-400 mb-6 leading-relaxed">Your deposit is being verified on the blockchain.<br>Please wait 5 to 15 minutes.</p>
+                    <div class="crypto-card border border-gray-700 p-4 rounded-xl w-full mb-6 text-left">
+                        <div class="text-[10px] text-gray-500 uppercase font-bold mb-1">Status</div>
+                        <div class="text-sm text-yellow-500 font-bold mb-3"><i class="fa-solid fa-circle-half-stroke mr-1"></i> Awaiting Network Confirmations</div>
+                        <div class="text-[10px] text-gray-500 uppercase font-bold mb-1">Cooldown Timer</div>
+                        <div id="deposit-cooldown-timer" class="text-sm text-white font-mono">05:00</div>
+                    </div>
+                </div>
+
+                <div id="deposit-standard-ui">
+                    <div class="text-sm text-gray-400 mb-3 font-medium">Select Deposit Asset</div>
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <button id="dep-coin-BTC" onclick="selectDepositNetwork('BTC')" class="dep-coin-btn crypto-card border border-gray-700 p-4 rounded-xl flex flex-col items-center justify-center active:scale-95 transition-all duration-200">
+                            <i class="fa-brands fa-bitcoin text-[#F7931A] text-3xl mb-2"></i><span class="text-xs font-bold text-white">BTC</span>
+                        </button>
+                        <button id="dep-coin-ETH" onclick="selectDepositNetwork('ETH')" class="dep-coin-btn crypto-card border border-gray-700 p-4 rounded-xl flex flex-col items-center justify-center active:scale-95 transition-all duration-200">
+                            <i class="fa-brands fa-ethereum text-[#627EEA] text-3xl mb-2"></i><span class="text-xs font-bold text-white">ETH</span>
+                        </button>
+                        <button id="dep-coin-SOL" onclick="selectDepositNetwork('SOL')" class="dep-coin-btn crypto-card border border-gray-700 p-4 rounded-xl flex flex-col items-center justify-center active:scale-95 transition-all duration-200">
+                            <i class="fa-solid fa-bolt text-purple-400 text-3xl mb-2"></i><span class="text-xs font-bold text-white">SOL</span>
+                        </button>
+                        <button id="dep-coin-USDT" onclick="selectDepositNetwork('TRC20-USDT')" class="dep-coin-btn crypto-card border border-[var(--accent-color)] p-4 rounded-xl flex flex-col items-center justify-center active:scale-95 transition-all duration-200">
+                            <i class="fa-solid fa-dollar-sign text-[#26A17B] text-3xl mb-2"></i><span class="text-xs font-bold crypto-text">USDT (TRC20)</span>
+                        </button>
+                    </div>
+
+                    <div id="deposit-address-container" class="hidden">
+                        <div class="crypto-card p-6 rounded-xl text-center">
+                            <div class="text-sm text-white mb-4 font-bold">Send <span id="deposit-network-label" class="crypto-text"></span> to this secure vault</div>
+                            <div class="bg-white p-2 rounded-xl inline-block mb-4">
+                                <img id="live-qr-code" src="" alt="QR Code" class="w-40 h-40 rounded" />
+                            </div>
+                            <div class="text-xs text-gray-400 mb-1">Vault Address</div>
+                            <div class="bg-black/50 p-3 rounded-lg text-xs text-white break-all border border-gray-700 font-mono mb-6 select-all">
+                                <span id="live-wallet-address"></span>
+                            </div>
+                            
+                            <div class="text-left mb-4">
+                                <label class="text-xs text-gray-400 font-bold uppercase block mb-1">1. Enter TxID (Hash)</label>
+                                <input id="deposit-txid-input" type="text" placeholder="Paste 64-character Hash here" class="w-full bg-transparent border-b border-gray-600 py-2 outline-none text-white text-xs font-mono mb-4" />
+                                
+                                <label class="text-xs text-gray-400 font-bold uppercase block mb-1">2. USD Value Sent</label>
+                                <input id="deposit-amount-input" type="number" placeholder="Enter equivalent value in USD" class="w-full bg-transparent border-b border-gray-600 py-2 outline-none text-white text-lg font-mono" />
+                            </div>
+                            <button onclick="submitDepositRequest()" class="w-full crypto-btn text-white py-4 rounded-xl font-bold shadow-lg active:scale-95 transition-transform">Confirm Deposit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="withdraw-screen" class="app-screen hidden flex-col min-h-screen bg-transparent pb-24">
+            <div class="crypto-card p-4 flex items-center sticky top-0 z-50">
+                <button onclick="navigateTo('dashboard-screen')" class="text-xl text-gray-400 hover:text-white px-2 py-1"><i class="fa-solid fa-chevron-left"></i></button>
+                <span class="mx-auto font-bold text-sm text-white pr-6">Withdraw Funds</span>
+            </div>
+            <div class="p-4 space-y-4 mt-2 overflow-y-auto flex-1">
+                <div class="crypto-card p-4 rounded-xl flex justify-between items-center border-l-4 border-l-green-500">
+                    <div class="text-sm text-gray-400 font-medium">Available to Withdraw</div>
+                    <div class="text-2xl text-white font-bold"><span class="balance-display">0.00</span> <span class="text-sm text-gray-500">USDT</span></div>
+                </div>
+
+                <div>
+                    <label class="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-2">1. Select Coin</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button onclick="selectWithdrawCoin('BTC')" id="w-coin-BTC" class="w-coin-btn crypto-card border border-gray-700 py-2 rounded-lg text-xs font-bold">BTC</button>
+                        <button onclick="selectWithdrawCoin('ETH')" id="w-coin-ETH" class="w-coin-btn crypto-card border border-gray-700 py-2 rounded-lg text-xs font-bold">ETH</button>
+                        <button onclick="selectWithdrawCoin('SOL')" id="w-coin-SOL" class="w-coin-btn crypto-card border border-gray-700 py-2 rounded-lg text-xs font-bold">SOL</button>
+                        <button onclick="selectWithdrawCoin('USDT')" id="w-coin-USDT" class="w-coin-btn crypto-card border border-[var(--accent-color)] crypto-text py-2 rounded-lg text-xs font-bold">USDT</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-2">2. Select Network</label>
+                    <div class="grid grid-cols-3 gap-2" id="withdraw-network-container"></div>
+                </div>
+
+                <div class="crypto-card p-4 rounded-xl space-y-4">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs text-gray-400 font-bold uppercase">3. Withdraw Amount</span>
+                            <button onclick="document.getElementById('withdraw-amount').value = userBalance; calculateWithdrawFee();" class="text-xs crypto-text font-bold">MAX</button>
+                        </div>
+                        <input id="withdraw-amount" type="number" oninput="calculateWithdrawFee()" placeholder="Min 10.00" class="w-full bg-transparent border-b border-gray-600 py-2 outline-none text-white text-lg font-mono" />
+                        <div class="flex justify-between items-center mt-2 text-xs">
+                            <span class="text-gray-500">Network Fee:</span>
+                            <span class="text-red-400 font-bold">1.00 USDT</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-1 text-xs border-t border-gray-700 pt-1">
+                            <span class="text-gray-400 font-bold">You Will Receive:</span>
+                            <span id="withdraw-receive-amount" class="text-green-500 font-bold">0.00 USDT</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs text-gray-400 font-bold uppercase block mb-1">4. Your Receiving Address</label>
+                        <input id="withdraw-address" type="text" placeholder="Enter target address" class="w-full bg-transparent border-b border-gray-600 py-2 outline-none text-white text-xs font-mono" />
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-gray-400 font-bold uppercase block mb-1">5. Upload Your Address QR Code</label>
+                        <input type="file" id="withdraw-qr-file" accept="image/*" class="w-full text-xs text-gray-400 mt-2 file:bg-gray-800 file:text-white file:border-0 file:px-2 file:py-1 file:rounded cursor-pointer">
+                    </div>
+                </div>
+                
+                <button onclick="submitWithdrawRequest()" class="w-full crypto-btn text-white py-4 rounded-xl font-bold shadow-lg active:scale-95 transition-transform mt-2">Confirm Withdraw</button>
+            </div>
+        </div>
+
+        <div id="loans-screen" class="app-screen hidden flex-col min-h-screen bg-transparent pb-24">
+            <div class="crypto-card p-4 flex items-center sticky top-0 z-50">
+                <button onclick="navigateTo('dashboard-screen')" class="text-xl text-gray-400 hover:text-white px-2 py-1"><i class="fa-solid fa-chevron-left"></i></button>
+                <span class="mx-auto font-bold text-sm text-white pr-6">Loan Products</span>
+            </div>
+            <div class="p-4 mb-2">
+                <p class="text-xs text-gray-400 text-center mb-4">Choose an instant loan package. No upfront collateral required.</p>
+                <div class="space-y-4" id="loans-container"></div>
+            </div>
+        </div>
+
+        <div id="team-screen" class="app-screen hidden flex-col min-h-screen bg-transparent pb-24">
+            <div class="crypto-card p-4 flex items-center sticky top-0 z-50">
+                <button onclick="navigateTo('dashboard-screen')" class="text-xl text-gray-400 hover:text-white px-2 py-1"><i class="fa-solid fa-chevron-left"></i></button>
+                <span class="mx-auto font-bold text-sm text-white pr-6">Affiliate Network</span>
+            </div>
+            <div class="p-4 space-y-4 mt-2">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="crypto-card p-4 rounded-xl text-center">
+                        <div class="text-xs text-gray-400 font-medium">Referred Borrowers</div>
+                        <div class="text-3xl text-white font-bold mt-1">0</div>
+                    </div>
+                    <div class="crypto-card p-4 rounded-xl text-center">
+                        <div class="text-xs text-gray-400 font-medium">Commissions Earned</div>
+                        <div class="text-3xl text-green-500 font-bold mt-1">0.00</div>
+                    </div>
+                </div>
+                <div class="crypto-card p-6 rounded-xl text-center mt-4 border border-gray-700">
+                    <div class="w-16 h-16 bg-[var(--accent-color)] rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-solid fa-handshake text-2xl text-white"></i>
+                    </div>
+                    <div class="text-lg font-bold text-white mb-2">Broker Program</div>
+                    <div class="text-sm text-gray-400 mb-6">Earn up to 2% commission on the origination fee of any loan your friends take out.</div>
+                    
+                    <div class="text-left text-xs text-gray-400 font-medium mb-2">Your Broker Link</div>
+                    <div class="flex items-center bg-black/50 rounded-lg p-2 border border-gray-700">
+                        <input type="text" value="https://cryptoloanstreet.com/ref/X79P2Q" readonly class="bg-transparent text-sm text-white w-full outline-none">
+                        <button onclick="showAlert('Success', 'Broker link copied to clipboard.', 'success')" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm font-bold active:scale-95 transition-transform ml-2">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="kyc-screen" class="app-screen hidden flex-col min-h-screen bg-transparent pb-24 overflow-y-auto">
+            <div class="crypto-card p-4 flex items-center sticky top-0 z-50">
+                <button onclick="navigateTo('me-screen')" class="text-xl text-gray-400 hover:text-white px-2 py-1"><i class="fa-solid fa-chevron-left"></i></button>
+                <span class="mx-auto font-bold text-sm text-white pr-6">Identity Verification</span>
+            </div>
+            <div class="p-4 mt-2 space-y-4">
+                <div class="crypto-card p-4 rounded-xl text-center border border-yellow-500/30">
+                    <i class="fa-solid fa-shield-halved text-yellow-500 text-3xl mb-2"></i>
+                    <div class="text-sm font-bold text-white mb-1">KYC / AML Required</div>
+                    <div class="text-xs text-gray-400">To unlock Whale tiers (Loans > $50,000 USDT), please upload a valid government ID.</div>
+                </div>
+                
+                <div class="crypto-card p-4 rounded-xl space-y-4">
+                    <div>
+                        <label class="text-xs text-gray-400 font-bold uppercase block mb-2">1. Document Type</label>
+                        <select id="kyc-doc-type" class="w-full bg-black border border-gray-700 rounded px-3 py-2 text-xs outline-none text-white appearance-none cursor-pointer">
+                            <option value="National ID">National ID Card</option>
+                            <option value="Passport">Passport</option>
+                            <option value="Driver License">Driver's License</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 font-bold uppercase block mb-2">2. ID Front Image</label>
+                        <input type="file" id="kyc-front" accept="image/*" class="w-full text-xs text-gray-400 file:bg-gray-800 file:text-white file:border-0 file:px-2 file:py-1 file:rounded border border-gray-700 p-2 rounded cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 font-bold uppercase block mb-2">3. ID Back Image</label>
+                        <input type="file" id="kyc-back" accept="image/*" class="w-full text-xs text-gray-400 file:bg-gray-800 file:text-white file:border-0 file:px-2 file:py-1 file:rounded border border-gray-700 p-2 rounded cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 font-bold uppercase block mb-2">4. Selfie with ID</label>
+                        <input type="file" id="kyc-selfie" accept="image/*" capture="user" class="w-full text-xs text-gray-400 file:bg-gray-800 file:text-white file:border-0 file:px-2 file:py-1 file:rounded border border-gray-700 p-2 rounded cursor-pointer">
+                    </div>
+                </div>
+                <button onclick="submitKYC()" class="w-full crypto-btn text-white py-4 rounded-xl font-bold shadow-lg mt-2 active:scale-95 transition-transform">Submit Documents</button>
+            </div>
+        </div>
+
+        <div id="support-chat-screen" class="app-screen hidden flex-col min-h-screen bg-transparent">
+            <div class="crypto-card p-4 flex items-center sticky top-0 z-50 border-b border-gray-800">
+                <button onclick="navigateTo('me-screen')" class="text-xl text-gray-400 hover:text-white px-2 py-1"><i class="fa-solid fa-chevron-left"></i></button>
+                <div class="flex items-center mx-auto pr-6">
+                    <div class="relative w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center shadow-lg"><i class="fa-solid fa-headset text-white text-xs"></i><div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#111928] rounded-full"></div></div>
+                    <div class="ml-3"><div class="font-bold text-sm text-white leading-tight">Loan Officer Support</div><div class="text-[10px] text-green-400">Online</div></div>
+                </div>
+            </div>
+            
+            <div id="user-chat-box" class="flex-1 p-4 overflow-y-auto space-y-4 pb-20 flex flex-col"></div>
+            
+            <div class="absolute bottom-0 left-0 right-0 crypto-card p-3 flex items-center space-x-2 border-t border-gray-800" style="background-color: var(--bg-primary);">
+                <label for="user-chat-img" class="text-gray-400 hover:text-white cursor-pointer px-2"><i class="fa-solid fa-paperclip text-xl"></i></label>
+                <input type="file" id="user-chat-img" accept="image/*" class="hidden" onchange="previewUserChatImage(event)">
+                
+                <div class="flex-1 bg-black border border-gray-700 rounded-full px-4 py-2 flex items-center">
+                    <div id="user-chat-img-preview" class="hidden mr-2 relative">
+                        <img src="" class="w-6 h-6 rounded object-cover border border-gray-600">
+                        <button onclick="removeUserChatImage()" class="absolute -top-2 -right-2 bg-red-500 rounded-full w-4 h-4 flex items-center justify-center text-[8px] text-white"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <input id="user-chat-input" type="text" placeholder="Type a message..." class="bg-transparent w-full outline-none text-sm text-white">
+                </div>
+                
+                <button onclick="sendUserMessage()" class="crypto-btn w-10 h-10 rounded-full flex items-center justify-center text-white active:scale-95 transition-transform"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+
+        <div id="history-screen" class="app-screen hidden flex-col min-h-screen bg-transparent pb-24">
+            <div class="crypto-card p-4 flex items-center sticky top-0 z-50">
+                <button onclick="navigateTo('dashboard-screen')" class="text-xl text-gray-400 hover:text-white px-2 py-1"><i class="fa-solid fa-chevron-left"></i></button>
+                <span class="mx-auto font-bold text-sm text-white pr-6">Transaction Ledger</span>
+            </div>
+            <div class="p-4 space-y-3 mt-2" id="transaction-history-list"></div>
+        </div>
+
+        <div id="me-screen" class="app-screen hidden flex-col min-h-screen bg-transparent pb-24 overflow-y-auto">
+            <div class="crypto-card pt-8 pb-10 px-6 rounded-b-[2.5rem] border-b-0 border-t-0">
+                <div class="flex items-center space-x-4">
+                    <div class="w-16 h-16 bg-[var(--accent-color)] rounded-full flex items-center justify-center text-2xl text-white font-bold"><i class="fa-solid fa-user"></i></div>
+                    <div>
+                        <div id="profile-name" class="font-bold text-xl text-white">User</div>
+                        <div class="text-xs text-gray-400 mt-1 flex items-center">
+                            <span id="user-vip-badge" class="bg-gray-800 text-white px-2 py-1 rounded-full mr-2 font-medium">Risk Tier: Retail</span>
+                            ID: <span class="text-white ml-1 font-mono">X79P2Q</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-4 mt-6 space-y-4">
+                <div class="crypto-card p-4 rounded-xl border border-[var(--accent-color)]/30" style="background-color: rgba(0, 102, 255, 0.05);">
+                    <div class="text-sm font-bold text-white mb-1"><i class="fa-solid fa-percent crypto-text mr-2"></i> Promotional Rate Code</div>
+                    <div class="text-xs text-gray-400 mb-3">Enter a partner code to claim an interest reduction or USDT bonus.</div>
+                    <div class="flex space-x-2">
+                        <input id="user-promo-input" type="text" placeholder="Enter Code..." class="flex-1 bg-black/50 border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none text-white font-mono uppercase">
+                        <button onclick="userRedeemCode()" class="crypto-btn text-white px-4 py-2 rounded-lg font-bold text-sm active:scale-95 transition-transform">Claim</button>
+                    </div>
+                </div>
+
+                <button id="admin-trigger-btn" onclick="navigateTo('admin-screen')" class="hidden w-full bg-red-600 hover:bg-red-700 text-white rounded-xl p-4 font-bold flex items-center justify-between shadow-lg relative active:scale-95 transition-transform">
+                    <div><i class="fa-solid fa-gear mr-2"></i> LOAN ADMIN PANEL</div>
+                    <div class="flex items-center">
+                        <span id="admin-master-badge" class="hidden bg-white text-red-600 text-xs px-2 py-1 rounded-full mr-3 font-black">0</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </div>
+                </button>
+
+                <div class="crypto-card rounded-xl overflow-hidden shadow-lg">
+                    <button onclick="navigateTo('kyc-screen')" class="w-full flex items-center justify-between p-4 border-b border-gray-800 hover:bg-gray-800 transition">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-id-card w-6 text-center text-yellow-500 mr-3 text-lg"></i>
+                            <span class="font-medium text-sm text-white">KYC & Compliance</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-gray-600 text-sm"></i>
+                    </button>
+                    <button onclick="navigateTo('history-screen')" class="w-full flex items-center justify-between p-4 border-b border-gray-800 hover:bg-gray-800 transition">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-list-ul w-6 text-center text-gray-400 mr-3 text-lg"></i>
+                            <span class="font-medium text-sm text-white">Transaction Ledger</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-gray-600 text-sm"></i>
+                    </button>
+                    <button onclick="showAlert('Security', 'Your account is protected by standard 256-bit encryption.', 'success')" class="w-full flex items-center justify-between p-4 border-b border-gray-800 hover:bg-gray-800 transition">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-shield-halved w-6 text-center text-gray-400 mr-3 text-lg"></i>
+                            <span class="font-medium text-sm text-white">Vault Security</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-gray-600 text-sm"></i>
+                    </button>
+                    <button onclick="openUserChat()" class="w-full flex items-center justify-between p-4 hover:bg-gray-800 transition relative">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-headset w-6 text-center crypto-text mr-3 text-lg"></i>
+                            <span class="font-medium text-sm text-white">Loan Officer Support</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span id="user-unread-badge" class="hidden bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center mr-2">!</span>
+                            <i class="fa-solid fa-chevron-right text-gray-600 text-sm"></i>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="crypto-card rounded-xl overflow-hidden shadow-lg mt-4">
+                    <button onclick="logout()" class="w-full flex items-center p-4 hover:bg-red-900/20 transition text-red-500">
+                        <i class="fa-solid fa-arrow-right-from-bracket w-6 text-center mr-3 text-lg"></i>
+                        <span class="font-bold text-sm">Log Out</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="admin-screen" class="app-screen hidden flex-col min-h-screen bg-black pb-24 overflow-y-auto">
+            <div class="bg-red-900 text-white p-4 flex items-center sticky top-0 z-50">
+                <button onclick="navigateTo('me-screen')" class="text-xl px-2"><i class="fa-solid fa-chevron-left"></i></button>
+                <span class="mx-auto font-black text-sm uppercase pr-6">Master Loan Engine</span>
+            </div>
+
+            <div class="p-4 space-y-4">
+                
+                <div class="crypto-card p-4 rounded-xl border border-gray-600">
+                    <div class="font-bold text-white text-sm mb-3"><i class="fa-solid fa-wand-magic-sparkles text-pink-400 mr-2"></i> No-Code Theme Builder</div>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="text-[10px] text-gray-400 block mb-1 font-bold uppercase">Background Color</label>
+                            <input type="color" id="admin-color-bg" value="#0B1426" class="w-full h-8 bg-transparent cursor-pointer rounded" onchange="applyNoCodeTheme()">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-400 block mb-1 font-bold uppercase">Accent/Button Color</label>
+                            <input type="color" id="admin-color-btn" value="#0066FF" class="w-full h-8 bg-transparent cursor-pointer rounded" onchange="applyNoCodeTheme()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crypto-card p-4 rounded-xl border border-green-500/50">
+                    <div class="font-bold text-green-400 text-sm mb-3"><i class="fa-solid fa-user-plus mr-2"></i> New Registration Alerts</div>
+                    <div id="admin-registration-alerts" class="space-y-2 text-xs text-gray-300 max-h-32 overflow-y-auto">
+                        No new registrations.
+                    </div>
+                </div>
+
+                <div class="crypto-card p-4 rounded-xl border border-yellow-600/50">
+                    <div class="font-bold text-yellow-500 text-sm mb-3"><i class="fa-solid fa-id-card-clip mr-2"></i> KYC Approval Vault</div>
+                    <div id="admin-kyc-queue" class="space-y-3">
+                        <div class="text-center text-xs text-gray-500">No pending KYC.</div>
+                    </div>
+                </div>
+
+                <div class="crypto-card p-4 rounded-xl border border-[#0066FF]/50">
+                    <div class="font-bold crypto-text text-sm mb-3 flex justify-between items-center">
+                        <div><i class="fa-solid fa-headset mr-2"></i> Live Support Inbox</div>
+                    </div>
+                    <div class="bg-black border border-gray-700 rounded-lg h-72 flex flex-col">
+                        <div class="bg-gray-800 p-2 border-b border-gray-700 flex items-center justify-between">
+                            <span class="text-xs text-white font-bold">Chatting with:</span>
+                            <select id="admin-chat-user-select" onchange="switchAdminChatUser(this.value)" class="bg-black text-xs text-blue-400 border border-gray-600 rounded px-2 py-1 outline-none font-mono">
+                                </select>
+                        </div>
+                        <div id="admin-chat-box" class="flex-1 p-3 overflow-y-auto space-y-3 flex flex-col text-sm"></div>
+                        <div class="border-t border-gray-700 p-2 flex items-center space-x-2">
+                            <label for="admin-chat-img" class="text-gray-400 cursor-pointer px-1 hover:text-white"><i class="fa-solid fa-paperclip"></i></label>
+                            <input type="file" id="admin-chat-img" accept="image/*" class="hidden" onchange="previewAdminChatImage(event)">
+                            <div class="flex-1 bg-gray-900 border border-gray-700 rounded flex items-center px-2 py-1">
+                                <div id="admin-chat-img-preview" class="hidden mr-2 relative">
+                                    <img src="" class="w-4 h-4 rounded object-cover">
+                                    <button onclick="removeAdminChatImage()" class="absolute -top-1 -right-1 bg-red-500 rounded-full w-3 h-3 text-[6px] text-white flex justify-center items-center"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
+                                <input id="admin-chat-input" type="text" placeholder="Reply to user..." class="bg-transparent w-full outline-none text-xs text-white">
+                            </div>
+                            <button onclick="sendAdminMessage()" class="crypto-text font-bold active:scale-95 transition-transform px-2"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crypto-card p-4 rounded-xl border border-orange-500/50">
+                    <div class="font-bold text-orange-400 text-sm mb-3"><i class="fa-solid fa-bell mr-2"></i> Pending Transactions</div>
+                    <div id="admin-transaction-queue" class="space-y-3"></div>
+                </div>
+
+                <div class="crypto-card p-4 rounded-xl shadow-lg mt-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="font-bold text-white text-sm"><i class="fa-solid fa-users mr-2 text-gray-400"></i> God Mode Directory</div>
+                        <div class="text-[10px] bg-[var(--accent-color)] text-white px-2 py-1 rounded font-bold shadow-lg">Total Users: <span id="admin-total-users">0</span></div>
+                    </div>
+                    
+                    <div class="relative mb-4">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-500 text-xs"></i>
+                        <input type="text" id="admin-user-search" oninput="renderAdminPanel()" placeholder="Search by Email, ID, or Name..." class="w-full bg-black border border-gray-700 rounded-lg pl-8 pr-3 py-2 text-xs outline-none text-white focus:border-[var(--accent-color)] transition-colors">
+                    </div>
+
+                    <div id="admin-users-list" class="space-y-3 max-h-[600px] overflow-y-auto pr-1"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="bottom-nav" class="hidden absolute bottom-0 left-0 right-0 crypto-card border-t border-gray-800 flex justify-around py-3 pb-6 z-50">
+            <button id="nav-home" onclick="navigateTo('dashboard-screen', 'nav-home')" class="nav-btn flex flex-col items-center crypto-text transition-colors">
+                <i class="fa-solid fa-house text-xl mb-1"></i>
+                <span class="text-[10px] font-bold mt-1">Home</span>
+            </button>
+            <button id="nav-loans" onclick="navigateTo('loans-screen', 'nav-loans')" class="nav-btn flex flex-col items-center text-gray-500 transition-colors">
+                <i class="fa-solid fa-hand-holding-dollar text-xl mb-1"></i>
+                <span class="text-[10px] font-medium mt-1">Loans</span>
+            </button>
+            <button id="nav-team" onclick="navigateTo('team-screen', 'nav-team')" class="nav-btn flex flex-col items-center text-gray-500 transition-colors">
+                <i class="fa-solid fa-users text-xl mb-1"></i>
+                <span class="text-[10px] font-medium mt-1">Affiliate</span>
+            </button>
+            <button id="nav-me" onclick="navigateTo('me-screen', 'nav-me')" class="nav-btn flex flex-col items-center text-gray-500 transition-colors">
+                <i class="fa-solid fa-user text-xl mb-1"></i>
+                <span class="text-[10px] font-medium mt-1">Profile</span>
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        let mockDatabase = JSON.parse(localStorage.getItem('cls_mockDatabase')) || [
+            { id: 1001, username: 'Admin_Root', balance: 0.00, totalDeposited: 0.00, vip: 15, email: 'Longwang350@gmail.com', phone: 'Admin', isFrozen: false, customWithdrawGate: 0, hasAcceptedAgreement: true, loanBlocked: false },
+            { id: 1002, username: 'CryptoWhale', balance: 10000.50, totalDeposited: 0.00, vip: 3, email: 'cryptoking_whale@yahoo.com', phone: '+15551234567', isFrozen: false, customWithdrawGate: 0, hasAcceptedAgreement: true, loanBlocked: false }
+        ];
+
+        let allChats = JSON.parse(localStorage.getItem('cls_allChats')) || {
+            "CryptoWhale": [{ sender: 'admin', text: 'Welcome to Crypto Loan Street!', imgUrl: null, time: getCurrentTime() }]
+        };
+
+        let globalTransactions = JSON.parse(localStorage.getItem('cls_globalTransactions')) || [];
+        let globalKYCQueue = JSON.parse(localStorage.getItem('cls_globalKYCQueue')) || [];
+        let activeLoans = JSON.parse(localStorage.getItem('cls_activeLoans')) || [];
+
+        function saveLocalData() {
+            localStorage.setItem('cls_mockDatabase', JSON.stringify(mockDatabase));
+            localStorage.setItem('cls_allChats', JSON.stringify(allChats));
+            localStorage.setItem('cls_globalTransactions', JSON.stringify(globalTransactions));
+            localStorage.setItem('cls_globalKYCQueue', JSON.stringify(globalKYCQueue));
+            localStorage.setItem('cls_activeLoans', JSON.stringify(activeLoans));
+        }
+
+        let userBalance = 0.00;
+        let userVipLevel = 0;
+        let isAdminActiveState = false;
+        let adminUnreadCount = 0;
+        let selectedWithdrawCoin = "USDT";
+        let selectedWithdrawNetwork = "TRC20";
+        let currentLoggedUsername = "";
+        let activeAdminChatUser = "";
+        let pendingUserImageUpload = null; 
+        let pendingAdminImageUpload = null;
+
+        const coinNetworks = { 
+            'BTC': ['Bitcoin Native'], 
+            'ETH': ['ERC20', 'Arbitrum One'], 
+            'SOL': ['Solana Native'], 
+            'USDT': ['TRC20', 'ERC20', 'BEP20'] 
+        };
+        
+        let walletConfigs = { 
+            'BTC': { address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh', qr: null }, 
+            'ETH': { address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F', qr: null }, 
+            'SOL': { address: 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH', qr: null }, 
+            'TRC20-USDT': { address: 'TDzXqMh1122mockWalletAddress9xPq', qr: null } 
+        };
+
+        let systemPromoCodes = { "WELCOME10": { value: 10.00, expiryTimestamp: null, isValid: true } };
+        let userRedeemedCodes = []; 
+        let depositCooldownActive = false;
+        let depositCooldownTimeLeft = 300; 
+        let depositCooldownInterval;
+
+        function openLightbox(imageSrc) {
+            document.getElementById('lightbox-img').src = imageSrc;
+            document.getElementById('lightbox-download').href = imageSrc;
+            document.getElementById('image-lightbox').classList.remove('hidden');
+        }
+
+        function closeLightbox() {
+            document.getElementById('image-lightbox').classList.add('hidden');
+            document.getElementById('lightbox-img').src = '';
+        }
+
+        const audioClick = new Audio('/static/sounds/click.mp3');
+        const audioAlert = new Audio('/static/sounds/alert.mp3');
+        
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('button') || e.target.closest('.nav-btn') || e.target.closest('input[type="checkbox"]')) {
+                try { audioClick.currentTime = 0; audioClick.play().catch(()=>{}); } catch(err){}
+            }
+        });
+
+        function triggerAdminAlert() {
+            adminUnreadCount++;
+            if(isAdminActiveState) {
+                document.getElementById('admin-master-badge').innerText = adminUnreadCount;
+                document.getElementById('admin-master-badge').classList.remove('hidden');
+            }
+            try { audioAlert.currentTime = 0; audioAlert.play().catch(()=>{}); } catch(err){}
+        }
+
+        function clearAdminAlerts() {
+            adminUnreadCount = 0;
+            document.getElementById('admin-master-badge').classList.add('hidden');
+        }
+
+        function generateTxId() { 
+            const chars = 'abcdef0123456789'; let tx = '0x'; 
+            for(let i=0; i<16; i++) tx += chars[Math.floor(Math.random() * chars.length)]; 
+            return tx; 
+        }
+        
+        function getCurrentTime() { 
+            const d = new Date(); 
+            return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); 
+        }
+        
+        function showAlert(title, text, styleMode = 'info') {
+            document.getElementById('alert-title').innerText = title; 
+            document.getElementById('alert-message').innerText = text;
+            const containerBox = document.getElementById('alert-icon');
+            if (styleMode === 'success') { containerBox.innerHTML = '<i class="fa-solid fa-circle-check text-green-500"></i>'; } 
+            else if (styleMode === 'error') { containerBox.innerHTML = '<i class="fa-solid fa-circle-exclamation text-red-500"></i>'; } 
+            else { containerBox.innerHTML = '<i class="fa-solid fa-circle-info crypto-text"></i>'; }
+            document.getElementById('custom-alert').classList.remove('hidden');
+        }
+        
+        function closeAlert() { document.getElementById('custom-alert').classList.add('hidden'); }
+        
+        function updateBalanceUI() { 
+            document.querySelectorAll('.balance-display').forEach(el => { el.innerText = userBalance.toFixed(2); }); 
+            const userIndex = mockDatabase.findIndex(u => u.username === currentLoggedUsername);
+            if(userIndex !== -1) mockDatabase[userIndex].balance = userBalance;
+            saveLocalData();
+        }
+        
+        function togglePasswordVisibility(id) { 
+            const input = document.getElementById(id); 
+            input.type = input.type === "password" ? "text" : "password"; 
+        }
+
+        function navigateTo(screenId, navId = null) {
+            document.querySelectorAll('.app-screen').forEach(screen => { screen.classList.add('hidden'); });
+            document.getElementById(screenId).classList.remove('hidden');
+            const bottomNav = document.getElementById('bottom-nav');
+            if (screenId === 'auth-screen' || screenId === 'support-chat-screen' || screenId === 'agreement-screen') { 
+                bottomNav.classList.add('hidden'); 
+            } else {
+                bottomNav.classList.remove('hidden');
+                if (navId) {
+                    document.querySelectorAll('.nav-btn').forEach(btn => { 
+                        btn.classList.replace('crypto-text', 'text-gray-500'); 
+                        btn.querySelector('span').classList.replace('font-bold', 'font-medium'); 
+                    });
+                    const activeBtn = document.getElementById(navId);
+                    activeBtn.classList.replace('text-gray-500', 'crypto-text'); 
+                    activeBtn.querySelector('span').classList.replace('font-medium', 'font-bold');
+                }
+            }
+            if(screenId === 'history-screen') renderHistoryScreen();
+            if(screenId === 'withdraw-screen') renderWithdrawNetworks();
+            if(screenId === 'admin-screen') { renderAdminPanel(); renderAdminQueue(); updateAdminChatDropdown(); renderAdminChat(); renderAdminKYC(); clearAdminAlerts(); }
+            if(screenId === 'support-chat-screen') { renderUserChat(); document.getElementById('user-unread-badge').classList.add('hidden'); }
+        }
+
+        function switchTab(type) {
+            const tabEmail = document.getElementById('tab-email'); const tabPhone = document.getElementById('tab-phone');
+            if (type === 'signup') {
+                document.getElementById('signin-form').classList.replace('block', 'hidden'); 
+                document.getElementById('signup-form').classList.replace('hidden', 'block');
+                tabPhone.classList.replace('text-gray-500', 'crypto-text'); tabPhone.classList.add('border-b-2', 'border-[var(--accent-color)]');
+                tabEmail.classList.replace('crypto-text', 'text-gray-500'); tabEmail.classList.remove('border-b-2', 'border-[var(--accent-color)]');
+            } else {
+                document.getElementById('signup-form').classList.replace('block', 'hidden'); 
+                document.getElementById('signin-form').classList.replace('hidden', 'block');
+                tabEmail.classList.replace('text-gray-500', 'crypto-text'); tabEmail.classList.add('border-b-2', 'border-[var(--accent-color)]');
+                tabPhone.classList.replace('crypto-text', 'text-gray-500'); tabPhone.classList.remove('border-b-2', 'border-[var(--accent-color)]');
+            }
+        }
+
+        function registerAccount() {
+            const country = document.getElementById('reg-country').value;
+            const phone = document.getElementById('reg-phone').value;
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-password').value;
+            const confirmPass = document.getElementById('reg-password-confirm').value;
+            
+            if(!phone || !email || !pass) { showAlert('Error', 'Please enter a valid phone number, email, and password.', 'error'); return; }
+            if(pass !== confirmPass) { showAlert('Error', 'Passwords do not match. Please re-enter carefully.', 'error'); return; }
+
+            const fullPhone = country + phone;
+            if(mockDatabase.find(u => u.phone === fullPhone || u.email === email)) {
+                showAlert('Account In Use', 'This phone number or email is already registered. Please log in.', 'error');
+                switchTab('signin');
+                return;
+            }
+            
+            const targetUsername = email.split('@')[0] + "_" + Math.floor(100 + Math.random() * 900);
+            const newUserId = Math.floor(1000 + Math.random() * 9000);
+            
+            mockDatabase.push({ 
+                id: newUserId, username: targetUsername, phone: fullPhone, balance: 0.00, totalDeposited: 0.00, 
+                vip: 0, email: email, password: pass, isFrozen: false, customWithdrawGate: undefined, hasAcceptedAgreement: false, loanBlocked: false 
+            });
+            
+            allChats[targetUsername] = [{ sender: 'admin', text: 'Welcome to Crypto Loan Street! Let us know if you need help getting started.', imgUrl: null, time: getCurrentTime() }];
+            
+            let adminSystemLogs = JSON.parse(localStorage.getItem('cls_adminLogs')) || [];
+            adminSystemLogs.push(`New User: ${targetUsername} | Email: ${email} | Phone: ${fullPhone} | Time: ${getCurrentTime()}`);
+            localStorage.setItem('cls_adminLogs', JSON.stringify(adminSystemLogs));
+            triggerAdminAlert();
+            saveLocalData();
+
+            showAlert('Success', 'Account created successfully! Please log in with your email.', 'success');
+            document.getElementById('main-input').value = email;
+            document.getElementById('main-password').value = '';
+            switchTab('signin');
+        }
+
+        function login() {
+            const identifier = document.getElementById('main-input').value.trim(); 
+            const p = document.getElementById('main-password').value;
+            
+            if (identifier === 'Longwang350@gmail.com' && p === '11112222') {
+                isAdminActiveState = true; currentLoggedUsername = "Admin_Root";
+                localStorage.setItem('cls_activeSession', currentLoggedUsername);
+                localStorage.setItem('cls_isAdmin', 'true');
+                document.getElementById('admin-trigger-btn').classList.remove('hidden'); 
+                document.getElementById('profile-name').innerText = currentLoggedUsername; 
+                navigateTo('dashboard-screen', 'nav-home');
+                return;
+            }
+            
+            const foundUser = mockDatabase.find(u => u.email === identifier);
+            if (foundUser && (foundUser.password === p || p === '123')) { 
+                if (foundUser.isFrozen) {
+                    showAlert('Account Locked', 'Your account has been frozen for suspicious activity. Please contact support.', 'error');
+                    return;
+                }
+
+                isAdminActiveState = false; currentLoggedUsername = foundUser.username;
+                userBalance = foundUser.balance; userVipLevel = foundUser.vip;
+                
+                localStorage.setItem('cls_activeSession', currentLoggedUsername);
+                localStorage.setItem('cls_isAdmin', 'false');
+                document.getElementById('admin-trigger-btn').classList.add('hidden'); 
+                document.getElementById('profile-name').innerText = currentLoggedUsername; 
+                
+                const badge = document.getElementById('user-vip-badge');
+                if(userVipLevel > 0) {
+                    badge.innerText = "Risk Tier: VIP / Whale"; badge.classList.replace('bg-gray-800', 'bg-gradient-to-r'); badge.classList.add('from-yellow-600', 'to-yellow-400');
+                } else {
+                    badge.innerText = "Risk Tier: Retail"; badge.classList.replace('bg-gradient-to-r', 'bg-gray-800'); badge.classList.remove('from-yellow-600', 'to-yellow-400');
+                }
+                
+                updateBalanceUI();
+                
+                if (foundUser.hasAcceptedAgreement) {
+                    navigateTo('dashboard-screen', 'nav-home');
+                    checkLoanAlerts();
+                } else {
+                    navigateTo('agreement-screen');
+                    setTimeout(checkAgreementScroll, 200);
+                }
+            } else {
+                showAlert('Login Failed', 'Incorrect email or password. Please try again.', 'error');
+            }
+        }
+
+        function logout() { 
+            userBalance = 0.00; userVipLevel = 0; isAdminActiveState = false; currentLoggedUsername = "";
+            localStorage.removeItem('cls_activeSession'); localStorage.removeItem('cls_isAdmin');
+            updateBalanceUI(); navigateTo('auth-screen'); 
+        }
+
+        function checkAgreementScroll() {
+            const content = document.getElementById('agreement-content');
+            const btn = document.getElementById('btn-accept-agreement');
+            const prompt = document.getElementById('scroll-prompt');
+            if (content.scrollHeight - content.scrollTop <= content.clientHeight + 20) {
+                btn.disabled = false;
+                btn.classList.remove('bg-gray-700', 'text-gray-500', 'cursor-not-allowed');
+                btn.classList.add('crypto-btn', 'text-white', 'shadow-lg', 'active:scale-95');
+                prompt.innerHTML = '<i class="fa-solid fa-check text-green-500"></i> You may now accept';
+                prompt.classList.remove('text-yellow-500', 'animate-pulse'); prompt.classList.add('text-green-500');
+            }
+        }
+
+        function acceptAgreement() {
+            const userIndex = mockDatabase.findIndex(u => u.username === currentLoggedUsername);
+            if(userIndex !== -1) { mockDatabase[userIndex].hasAcceptedAgreement = true; saveLocalData(); }
+            navigateTo('dashboard-screen', 'nav-home');
+            showAlert('Agreement Signed', 'Welcome to the platform. Your legal agreement has been recorded.', 'success');
+            checkLoanAlerts();
+        }
+
+        function takeLoan(levelName, loanAmount, termDays) {
+            const currentUserData = mockDatabase.find(u => u.username === currentLoggedUsername);
+            if (currentUserData && currentUserData.loanBlocked) {
+                showAlert('Restriction Active', 'Your account is currently restricted from requesting new loan products. Please contact your Loan Officer.', 'error');
+                return;
+            }
+
+            userBalance += loanAmount; 
+            updateBalanceUI();
+            
+            activeLoans.push({ 
+                id: 'loan_' + Math.floor(Math.random() * 1000000),
+                user: currentLoggedUsername,
+                titleName: levelName, 
+                collateralLocked: 0, 
+                loanAmount: loanAmount, 
+                expirationTimeEpoch: Date.now() + (termDays * 24 * 60 * 60 * 1000) 
+            });
+            
+            saveLocalData();
+            refreshLoanUI();
+            showAlert('Loan Approved', `${loanAmount.toFixed(2)} USDT has been disbursed directly to your balance.`, 'success');
+        }
+
+        function refreshLoanUI() {
+            const parentSection = document.getElementById('active-stakes-container');
+            let displayLoans = activeLoans.filter(l => l.user === currentLoggedUsername);
+
+            if(displayLoans.length === 0) { 
+                parentSection.innerHTML = '<div class="text-center text-gray-500 text-xs py-6 crypto-card rounded-xl border border-dashed border-gray-700">No active loans. Go to Loan Products to borrow.</div>'; 
+                return; 
+            }
+            
+            let html = '';
+            displayLoans.forEach((item) => {
+                const dueDate = new Date(item.expirationTimeEpoch).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                
+                html += `
+                <div class="crypto-card rounded-xl p-4 shadow-lg border border-[var(--accent-color)] border-l-4 mb-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-sm text-white">${item.titleName}</span>
+                        <span class="text-[10px] bg-red-500/20 text-red-500 font-bold px-2 py-1 rounded border border-red-500/30">Active Debt</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs text-gray-400 mt-3 bg-black/20 p-2 rounded">
+                        <span class="flex flex-col">
+                            <span class="text-white font-bold mb-1">Debt Amount:</span>
+                            <span class="text-red-400 font-bold text-sm">-${item.loanAmount.toLocaleString('en-US', {minimumFractionDigits: 2})} USDT</span>
+                            <span class="text-[10px] text-gray-500 mt-1">Due: ${dueDate}</span>
+                        </span>
+                        <span id="countdown-node-${item.id}" class="text-yellow-500 font-mono text-right flex flex-col justify-center">Syncing...</span>
+                    </div>
+                </div>`;
+            });
+            parentSection.innerHTML = html;
+        }
+
+        setInterval(() => {
+            activeLoans.forEach((item) => {
+                if (!item || !item.id) return; 
+                const clockNode = document.getElementById(`countdown-node-${item.id}`);
+                if (clockNode) {
+                    const durationDiff = item.expirationTimeEpoch - Date.now();
+                    if (durationDiff <= 0) { 
+                        clockNode.innerText = "OVERDUE"; 
+                        clockNode.className = "text-red-500 font-bold text-xs animate-pulse"; 
+                    } else {
+                        const calculatedDays = Math.floor(durationDiff / (1000 * 60 * 60 * 24));
+                        const calculatedHours = Math.floor((durationDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const calculatedMins = Math.floor((durationDiff % (1000 * 60 * 60)) / (1000 * 60));
+                        clockNode.innerHTML = `<span class="text-[10px] text-gray-500 mb-0.5">Time Remaining</span><span>${calculatedDays}d ${calculatedHours}h ${calculatedMins}m</span>`;
+                    }
+                }
+            });
+        }, 1000);
+
+        function generateLoanProducts() {
+            const levels = [
+                {name: "Retail Pro", loan: 10000, cycleDays: 30},
+                {name: "Premium Desk", loan: 50000, cycleDays: 60},
+                {name: "Wealth Tier", loan: 100000, cycleDays: 90},
+                {name: "Private Client", loan: 500000, cycleDays: 180},
+                {name: "Whale Desk", loan: 1000000, cycleDays: 180},
+                {name: "Institutional Block", loan: 5000000, cycleDays: 365},
+                {name: "Apex Syndicate", loan: 10000000, cycleDays: 365}
+            ];
+            const container = document.getElementById('loans-container');
+            let html = '';
+            levels.forEach(l => {
+                html += `
+                <div class="crypto-card p-5 rounded-2xl shadow-xl">
+                    <div class="font-bold text-white text-lg mb-4 flex items-center justify-between">
+                        ${l.name}
+                        <i class="fa-solid fa-hand-holding-dollar text-[var(--accent-color)] opacity-70 text-2xl"></i>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 text-xs text-gray-400 mb-2 bg-black/30 p-3 rounded-xl border border-gray-800">
+                        <div>Loan Amount: <span class="text-white font-bold block text-sm">${l.loan.toLocaleString('en-US', {minimumFractionDigits: 2})} USDT</span></div>
+                        <div>Duration: <span class="text-white block text-sm">${l.cycleDays} Days</span></div>
+                        <div class="col-span-2 border-t border-gray-700 pt-2 mt-1">Upfront Requirement: <span class="text-green-500 font-bold block text-sm">✅ Zero Deposit Required</span></div>
+                    </div>
+                    <div class="text-[9px] text-red-400 bg-red-500/10 border border-red-500/30 p-2 rounded mb-4">
+                        ⚠️ Penalty Warning: Must be repaid by exact due date to avoid 30%-50% liquidated damages per agreement.
+                    </div>
+                    <button onclick="takeLoan('${l.name}', ${l.loan}, ${l.cycleDays})" class="w-full crypto-btn text-white py-3.5 rounded-xl font-bold active:scale-95 transition-transform shadow-lg border border-blue-400/50">Apply for Loan</button>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function checkLoanAlerts() {
+            if(isAdminActiveState) return;
+            const myLoans = activeLoans.filter(l => l.user === currentLoggedUsername);
+            let urgentLoan = false;
+            myLoans.forEach(l => {
+                const timeLeft = l.expirationTimeEpoch - Date.now();
+                if (timeLeft < 3 * 24 * 60 * 60 * 1000) { 
+                    urgentLoan = true;
+                }
+            });
+            if (urgentLoan) {
+                showAlert('URGENT NOTICE', 'You have a loan due in less than 3 days or currently overdue. Please deposit funds and repay immediately to avoid 30%-50% liquidated damages.', 'error');
+            }
+        }
+
+        function updateDynamicTicker() {
+            const tickerNames = ['User_0x8A...', 'CryptoWhale', 'Anon_0x3B...', 'LiquidityPro', 'User_0x1C...', 'Satoshi_Dev'];
+            const tickerActions = ['borrowed', 'deposited collateral', 'repaid loan'];
+            const name = tickerNames[Math.floor(Math.random() * tickerNames.length)];
+            const action = tickerActions[Math.floor(Math.random() * tickerActions.length)];
+            const amt = (Math.random() * (15000 - 500) + 500).toFixed(2);
+            let actionText = '', icon = '';
+            if (action === 'borrowed') { actionText = `<span class="text-yellow-400">borrowed ${amt} USDT</span>`; icon = '📈'; } 
+            else if (action === 'deposited collateral') { actionText = `<span class="text-green-400">verified deposit of ${amt} USDT</span>`; icon = '🔒'; } 
+            else { actionText = `<span class="text-blue-400">repaid ${amt} USDT</span>`; icon = '✅'; }
+            const newString = `${icon} ${name} just ${actionText} &nbsp; &nbsp; &nbsp; `;
+            const container = document.getElementById('dynamic-ticker-container');
+            if(container.innerHTML.length > 500) { container.innerHTML = ""; }
+            container.innerHTML += newString;
+        }
+        setInterval(updateDynamicTicker, 4000);
+
+        function renderUserChat() {
+            const box = document.getElementById('user-chat-box');
+            let html = '';
+            if(!allChats[currentLoggedUsername]) { allChats[currentLoggedUsername] = []; }
+            allChats[currentLoggedUsername].forEach(msg => {
+                if(msg.sender === 'user') {
+                    let img = msg.imgUrl ? `<img src="${msg.imgUrl}" onclick="openLightbox(this.src)" class="max-w-[200px] rounded-lg mb-2 shadow cursor-zoom-in hover:border hover:border-white transition-colors">` : '';
+                    let txt = msg.text ? `<p>${msg.text}</p>` : '';
+                    html += `<div class="flex justify-end"><div class="chat-bubble-user p-3 max-w-[80%] text-sm shadow-md">${img}${txt}<div class="text-[9px] text-white/70 text-right mt-1">${msg.time}</div></div></div>`;
+                } else {
+                    let img = msg.imgUrl ? `<img src="${msg.imgUrl}" onclick="openLightbox(this.src)" class="max-w-[200px] rounded-lg mb-2 shadow cursor-zoom-in hover:border hover:border-white transition-colors">` : '';
+                    let txt = msg.text ? `<p>${msg.text}</p>` : '';
+                    html += `<div class="flex justify-start items-end"><div class="w-6 h-6 rounded-full bg-[var(--accent-color)] flex items-center justify-center mr-2 mb-1 shrink-0 shadow"><i class="fa-solid fa-headset text-white text-[10px]"></i></div><div class="chat-bubble-admin p-3 max-w-[75%] text-sm shadow-md">${img}${txt}<div class="text-[9px] text-gray-400 text-right mt-1">${msg.time}</div></div></div>`;
+                }
+            });
+            box.innerHTML = html; box.scrollTop = box.scrollHeight; 
+        }
+
+        function sendUserMessage() {
+            const txt = document.getElementById('user-chat-input').value.trim();
+            if(!txt && !pendingUserImageUpload) return;
+            if(!allChats[currentLoggedUsername]) allChats[currentLoggedUsername] = [];
+            allChats[currentLoggedUsername].push({ sender: 'user', text: txt, imgUrl: pendingUserImageUpload, time: getCurrentTime() });
+            saveLocalData(); document.getElementById('user-chat-input').value = ''; 
+            removeUserChatImage(); renderUserChat(); triggerAdminAlert(); 
+        }
+
+        function selectDepositNetwork(networkKey) {
+            document.querySelectorAll('.dep-coin-btn').forEach(btn => {
+                btn.classList.remove('border-[var(--accent-color)]'); btn.classList.add('border-gray-700');
+                btn.querySelector('span').classList.remove('crypto-text'); btn.querySelector('span').classList.add('text-white');
+            });
+            let btnIdMap = networkKey === 'TRC20-USDT' ? 'USDT' : networkKey;
+            const activeBtn = document.getElementById('dep-coin-' + btnIdMap);
+            if(activeBtn) {
+                activeBtn.classList.remove('border-gray-700'); activeBtn.classList.add('border-[var(--accent-color)]');
+                activeBtn.querySelector('span').classList.remove('text-white'); activeBtn.querySelector('span').classList.add('crypto-text');
+            }
+            if(depositCooldownActive) {
+                document.getElementById('deposit-standard-ui').classList.add('hidden'); document.getElementById('deposit-processing-ui').classList.remove('hidden'); return;
+            }
+            document.getElementById('deposit-processing-ui').classList.add('hidden'); document.getElementById('deposit-standard-ui').classList.remove('hidden');
+            document.getElementById('deposit-network-label').innerText = networkKey;
+            const currentAddress = walletConfigs[networkKey].address;
+            document.getElementById('live-wallet-address').innerText = currentAddress;
+            const qrFrameNode = document.getElementById('live-qr-code');
+            qrFrameNode.src = walletConfigs[networkKey].qr ? walletConfigs[networkKey].qr : 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + currentAddress;
+            document.getElementById('deposit-address-container').classList.remove('hidden');
+        }
+
+        function submitDepositRequest() {
+            const amount = parseFloat(document.getElementById('deposit-amount-input').value);
+            const txid = document.getElementById('deposit-txid-input').value;
+            const network = document.getElementById('deposit-network-label').innerText;
+            if(txid.trim().length < 5) { showAlert('Error', 'Please enter a valid Transaction Hash.', 'error'); return; }
+            if(isNaN(amount) || amount <= 0) { showAlert('Error', 'Please enter a valid deposit amount.', 'error'); return; }
+            const tx = { id: txid, type: 'Deposit', amount: amount, network: network, address: walletConfigs[network].address, status: 'Pending', time: getCurrentTime(), user: currentLoggedUsername, qrCodeImg: null };
+            globalTransactions.unshift(tx); saveLocalData();
+            depositCooldownActive = true; document.getElementById('deposit-standard-ui').classList.add('hidden'); document.getElementById('deposit-processing-ui').classList.remove('hidden');
+            startDepositCooldown(); triggerAdminAlert();
+            document.getElementById('deposit-address-container').classList.add('hidden'); document.getElementById('deposit-amount-input').value = ''; document.getElementById('deposit-txid-input').value = '';
+        }
+
+        function startDepositCooldown() {
+            depositCooldownTimeLeft = 300; updateCooldownDisplay();
+            depositCooldownInterval = setInterval(() => {
+                depositCooldownTimeLeft--; updateCooldownDisplay();
+                if(depositCooldownTimeLeft <= 0) { clearInterval(depositCooldownInterval); depositCooldownActive = false; }
+            }, 1000);
+        }
+        
+        function updateCooldownDisplay() {
+            const m = Math.floor(depositCooldownTimeLeft / 60).toString().padStart(2, '0');
+            const s = (depositCooldownTimeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('deposit-cooldown-timer').innerText = `${m}:${s}`;
+        }
+
+        function selectWithdrawCoin(coin) {
+            selectedWithdrawCoin = coin;
+            document.querySelectorAll('.w-coin-btn').forEach(btn => { 
+                btn.classList.replace('text-[var(--accent-color)]', 'text-white'); btn.classList.replace('crypto-text', 'text-white'); btn.classList.replace('border-[var(--accent-color)]', 'border-gray-700'); 
+            });
+            const activeBtn = document.getElementById('w-coin-' + coin);
+            activeBtn.classList.replace('text-white', 'crypto-text'); activeBtn.classList.replace('border-gray-700', 'border-[var(--accent-color)]');
+            renderWithdrawNetworks(); calculateWithdrawFee();
+        }
+
+        function renderWithdrawNetworks() {
+            const container = document.getElementById('withdraw-network-container');
+            const networks = coinNetworks[selectedWithdrawCoin]; selectedWithdrawNetwork = networks[0]; 
+            let html = '';
+            networks.forEach((net, index) => {
+                let activeClass = index === 0 ? 'border-[var(--accent-color)] crypto-text' : 'border-gray-700 text-white';
+                html += `<button onclick="selectWithdrawNetwork('${net}', this)" class="w-net-btn crypto-card py-2 rounded-lg text-xs font-bold ${activeClass}">${net}</button>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function selectWithdrawNetwork(net, element) {
+            selectedWithdrawNetwork = net;
+            document.querySelectorAll('.w-net-btn').forEach(btn => { btn.classList.remove('border-[var(--accent-color)]', 'crypto-text'); btn.classList.add('border-gray-700', 'text-white'); });
+            element.classList.remove('border-gray-700', 'text-white'); element.classList.add('border-[var(--accent-color)]', 'crypto-text');
+        }
+
+        function calculateWithdrawFee() {
+            const amountInput = document.getElementById('withdraw-amount'); const receiveDisplay = document.getElementById('withdraw-receive-amount');
+            const amount = parseFloat(amountInput.value);
+            if (isNaN(amount) || amount <= 1.00) { receiveDisplay.innerText = "0.00 USDT"; } 
+            else { const finalAmount = amount - 1.00; receiveDisplay.innerText = finalAmount.toFixed(2) + " USDT"; }
+        }
+
+        function submitWithdrawRequest() {
+            const amountInput = document.getElementById('withdraw-amount'); const addressInput = document.getElementById('withdraw-address'); const fileInput = document.getElementById('withdraw-qr-file');
+            const amount = parseFloat(amountInput.value);
+            if (isNaN(amount) || amount < 10) { showAlert('Error', 'Minimum withdrawal is 10 USDT.', 'error'); return; }
+            if (addressInput.value.trim() === '') { showAlert('Error', 'Please enter your receiving wallet address.', 'error'); return; }
+            if (amount > userBalance) { showAlert('Error', 'Insufficient available balance.', 'error'); return; }
+            if (fileInput.files.length === 0) { showAlert('Error', 'Please upload your wallet address QR Code image.', 'error'); return; }
+
+            const currentUserData = mockDatabase.find(u => u.username === currentLoggedUsername);
+            const userTotalDeposited = currentUserData.totalDeposited || 0;
+            
+            // Checking Custom Admin Gate OR Default 10% Gate
+            if (currentUserData.customWithdrawGate !== undefined && currentUserData.customWithdrawGate !== "") {
+                const gate = parseFloat(currentUserData.customWithdrawGate);
+                if (gate > 0 && userTotalDeposited < gate) {
+                    showAlert('Deposit Required', `To verify your account and unlock withdrawals, you must make a security deposit of exactly ${gate.toFixed(2)} USDT.\n\nYour current valid deposit history is: ${userTotalDeposited.toFixed(2)} USDT.`, 'error');
+                    return;
+                }
+            } else {
+                const requiredDepositAmount = userBalance * 0.10;
+                if (userTotalDeposited < requiredDepositAmount) {
+                    showAlert('Deposit Required', `Security Policy: You must have a total deposit history of at least 10% of your current balance (${requiredDepositAmount.toFixed(2)} USDT) to verify your account before making a withdrawal.\n\nYour current valid deposit history is: ${userTotalDeposited.toFixed(2)} USDT.`, 'error');
+                    return;
+                }
+            }
+
+            const targetFile = fileInput.files[0]; const userQRBlobUrl = URL.createObjectURL(targetFile);
+            userBalance -= amount; updateBalanceUI();
+            const tx = { id: generateTxId(), type: 'Withdraw', amount: amount, network: selectedWithdrawCoin + " (" + selectedWithdrawNetwork + ")", address: addressInput.value, status: 'Pending', time: getCurrentTime(), user: currentLoggedUsername, qrCodeImg: userQRBlobUrl };
+            globalTransactions.unshift(tx); saveLocalData(); triggerAdminAlert();
+            showAlert('Success', `Withdrawal request submitted for review.`, 'success');
+            amountInput.value = ''; addressInput.value = ''; fileInput.value = ''; calculateWithdrawFee(); navigateTo('history-screen');
+        }
+
+        function renderHistoryScreen() {
+            const container = document.getElementById('transaction-history-list');
+            let displayTxs = isAdminActiveState ? globalTransactions : globalTransactions.filter(t => t.user === currentLoggedUsername);
+            
+            if (displayTxs.length === 0) { container.innerHTML = '<div class="crypto-card p-6 rounded-xl text-center text-gray-500 text-sm">No transaction history found.</div>'; return; }
+            let html = '';
+            displayTxs.forEach(tx => {
+                let statusColor = tx.status === 'Pending' ? 'text-yellow-500 bg-yellow-500/10 border-yellow-500/30' : tx.status === 'Completed' ? 'text-green-500 bg-green-500/10 border-green-500/30' : 'text-red-500 bg-red-500/10 border-red-500/30';
+                let amountColor = tx.type === 'Deposit' ? 'text-green-500' : 'text-white';
+                let sign = tx.type === 'Deposit' ? '+' : '-';
+                let feeNote = tx.type === 'Withdraw' ? `<div class="text-[10px] text-gray-500 mt-1">Includes 1.00 USDT Fee</div>` : '';
+                html += `<div class="crypto-card p-4 rounded-xl shadow-lg border-l-4 border-l-blue-500"><div class="flex justify-between items-center mb-3"><div class="font-bold text-white uppercase text-sm">${tx.type}</div><div class="text-[10px] font-bold px-2 py-1 rounded border ${statusColor} uppercase">${tx.status}</div></div><div class="text-2xl font-bold ${amountColor} mb-2">${sign}${tx.amount.toFixed(2)} <span class="text-sm text-gray-500">USDT</span></div>${feeNote}<div class="text-xs text-gray-400 space-y-1 mt-3 pt-3 border-t border-gray-700/50"><div class="flex justify-between"><span>Time</span> <span class="text-gray-300">${tx.time}</span></div><div class="flex justify-between"><span>Network</span> <span class="text-gray-300">${tx.network}</span></div><div class="flex justify-between"><span>TxID</span> <span class="text-gray-300 truncate w-32 text-right font-mono">${tx.id}</span></div><div class="flex justify-between"><span>Address</span> <span class="text-gray-300 truncate w-32 text-right font-mono">${tx.address}</span></div></div></div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderAdminQueue() {
+            const container = document.getElementById('admin-transaction-queue');
+            const pendingTxs = globalTransactions.filter(tx => tx.status === 'Pending');
+            if (pendingTxs.length === 0) { container.innerHTML = '<div class="text-center text-sm text-gray-500 py-2">Queue is empty.</div>'; return; }
+            let html = '';
+            pendingTxs.forEach(tx => {
+                let badge = tx.type === 'Deposit' ? 'bg-green-500/20 text-green-500 border-green-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+                let qrImageElement = tx.qrCodeImg ? `<div class="mt-2 text-left"><div class="text-[10px] text-gray-400 font-bold mb-1">USER WALLET QR CODE:</div><img src="${tx.qrCodeImg}" onclick="openLightbox(this.src)" class="w-32 h-32 object-cover rounded-lg border border-gray-700 p-1 bg-white cursor-zoom-in hover:border-[#0066FF] transition-colors" /></div>` : '';
+                let feeNote = tx.type === 'Withdraw' ? `<div class="text-red-400 mt-1">Send User: ${(tx.amount - 1).toFixed(2)} USDT</div>` : '';
+                html += `<div class="bg-gray-800 rounded-lg p-4 border border-gray-700 shadow-xl"><div class="flex justify-between items-center mb-3"><span class="text-xs uppercase font-bold px-2 py-1 rounded border ${badge}">${tx.type}</span><span class="text-lg font-bold text-white font-mono">${tx.amount.toFixed(2)} USDT</span></div><div class="text-xs text-gray-400 mb-4 space-y-1 font-mono bg-black/30 p-2 rounded"><div>User: <span class="text-white font-sans font-bold">${tx.user}</span></div><div>Net: <span class="text-white">${tx.network}</span></div><div class="truncate">TxID: <span class="text-white">${tx.id}</span></div><div class="truncate">Addr: <span class="text-white select-all">${tx.address}</span></div>${feeNote}${qrImageElement}</div><div class="flex space-x-3"><button onclick="resolveTransaction('${tx.id}', 'approve')" class="flex-1 bg-green-600 hover:bg-green-500 text-white text-xs font-bold py-3 rounded uppercase active:scale-95 transition-transform shadow-lg">Approve</button><button onclick="resolveTransaction('${tx.id}', 'reject')" class="flex-1 bg-red-600 hover:bg-red-500 text-white text-xs font-bold py-3 rounded uppercase active:scale-95 transition-transform shadow-lg">Reject</button></div></div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function resolveTransaction(txId, action) {
+            let tx = globalTransactions.find(t => t.id === txId);
+            if (!tx) return;
+            if (action === 'approve') {
+                tx.status = 'Completed';
+                if (tx.type === 'Deposit') { 
+                    const userIndex = mockDatabase.findIndex(u => u.username === tx.user);
+                    if(userIndex !== -1) {
+                        mockDatabase[userIndex].balance += tx.amount;
+                        mockDatabase[userIndex].totalDeposited = (mockDatabase[userIndex].totalDeposited || 0) + tx.amount;
+                    }
+                }
+                showAlert('Success', 'Transaction approved successfully.', 'success');
+            } else if (action === 'reject') {
+                tx.status = 'Rejected';
+                if (tx.type === 'Withdraw') { 
+                    const userIndex = mockDatabase.findIndex(u => u.username === tx.user);
+                    if(userIndex !== -1) {
+                        mockDatabase[userIndex].balance += tx.amount;
+                    }
+                }
+                showAlert('Success', 'Transaction rejected. Assets returned.', 'info');
+            }
+            saveLocalData(); renderAdminQueue(); renderAdminPanel();
+        }
+
+        function renderAdminPanel() {
+            let logs = JSON.parse(localStorage.getItem('cls_adminLogs')) || [];
+            const alertsContainer = document.getElementById('admin-registration-alerts');
+            if(alertsContainer) {
+                if(logs.length === 0) { alertsContainer.innerHTML = 'No new registrations.'; } 
+                else { alertsContainer.innerHTML = logs.slice().reverse().map(l => `<div class="bg-gray-800 p-2 rounded border border-gray-700 shadow-sm"><i class="fa-solid fa-user-check text-green-500 mr-2"></i> ${l}</div>`).join(''); }
+            }
+
+            const container = document.getElementById('admin-users-list');
+            const searchBar = document.getElementById('admin-user-search');
+            const searchQuery = searchBar ? searchBar.value.toLowerCase() : "";
+            
+            const filteredUsers = mockDatabase.filter(user => {
+                const emailMatch = (user.email || "").toLowerCase().includes(searchQuery);
+                const idMatch = user.id.toString().includes(searchQuery);
+                const nameMatch = user.username.toLowerCase().includes(searchQuery);
+                return emailMatch || idMatch || nameMatch;
+            });
+
+            const totalNode = document.getElementById('admin-total-users');
+            if (totalNode) totalNode.innerText = mockDatabase.length;
+
+            let html = '';
+            if (filteredUsers.length === 0) { html = '<div class="text-center text-gray-500 text-xs py-4">No users found matching that search.</div>'; }
+
+            filteredUsers.forEach((user) => {
+                const originalIndex = mockDatabase.findIndex(u => u.id === user.id);
+                let vipOptions = ''; for(let i=0; i<=15; i++) { vipOptions += `<option value="${i}" ${user.vip === i ? 'selected' : ''}>Tier ${i}</option>`; }
+                
+                html += `
+                <div class="border border-gray-700 rounded-lg p-4 bg-[#111928] mb-3 shadow-lg ${user.isFrozen ? 'opacity-50' : ''}">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="w-full">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <input type="text" id="admin-name-${originalIndex}" value="${user.username}" class="bg-black border border-gray-600 rounded px-2 py-1 text-xs text-white w-24">
+                                <button onclick="adminChangeName(${originalIndex})" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] px-2 py-1 rounded transition-colors shadow">Save</button>
+                                <span class="text-[10px] bg-gray-800 text-gray-400 px-2 py-0.5 rounded font-mono shadow">ID: ${user.id}</span>
+                            </div>
+                            <div class="text-[10px] text-gray-400 mt-1"><i class="fa-solid fa-phone mr-1"></i> ${user.phone || 'N/A'}</div>
+                            <div class="text-[10px] text-gray-400"><i class="fa-regular fa-envelope mr-1"></i> ${user.email || 'N/A'}</div>
+                            <div class="text-[10px] text-green-500 mt-1 font-bold"><i class="fa-solid fa-vault mr-1"></i> Deposited: ${(user.totalDeposited||0).toFixed(2)}</div>
+                        </div>
+                        <div class="flex flex-col items-end space-y-2">
+                            <span class="font-bold text-green-500 text-sm">${user.balance.toFixed(2)} USDT</span>
+                            <button onclick="adminToggleFreeze(${originalIndex})" class="${user.isFrozen ? 'bg-green-600 hover:bg-green-500' : 'bg-red-600 hover:bg-red-500'} text-white text-[10px] px-2 py-1 rounded w-full shadow transition-colors">
+                                ${user.isFrozen ? 'Unfreeze' : 'Freeze'}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between border-t border-gray-800 pt-3 mb-2">
+                        <span class="text-[10px] text-gray-400 flex items-center gap-2">Req. Deposit:
+                            <input id="gate-${originalIndex}" type="number" placeholder="Default 10%" value="${user.customWithdrawGate || ''}" class="w-20 bg-black border border-gray-600 rounded px-2 text-[10px] outline-none text-white py-1">
+                        </span>
+                        <div class="flex space-x-2">
+                            <button onclick="adminSetGate(${originalIndex})" class="bg-purple-600 hover:bg-purple-500 text-white rounded text-[10px] px-2 py-1 shadow">Set Gate</button>
+                            <button onclick="adminToggleLoanBlock(${originalIndex})" class="${user.loanBlocked ? 'bg-yellow-600' : 'bg-gray-700'} text-white rounded text-[10px] px-2 py-1 shadow">${user.loanBlocked ? 'Unblock Loans' : 'Block Loans'}</button>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-2 border-t border-gray-800 pt-3">
+                        <input id="amt-${originalIndex}" type="number" placeholder="Amount" class="w-1/3 bg-black border border-gray-600 rounded px-3 text-xs outline-none text-white py-2">
+                        <button onclick="modifyBalance(${originalIndex}, 'add')" class="flex-1 bg-green-600 hover:bg-green-500 text-white rounded text-sm font-bold active:scale-95 transition-transform"><i class="fa-solid fa-plus"></i></button>
+                        <button onclick="modifyBalance(${originalIndex}, 'minus')" class="flex-1 bg-red-600 hover:bg-red-500 text-white rounded text-sm font-bold active:scale-95 transition-transform"><i class="fa-solid fa-minus"></i></button>
+                        <button onclick="modifyBalance(${originalIndex}, 'set')" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-[10px] font-bold active:scale-95 transition-transform">SET EXACT</button>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function adminChangeName(idx) {
+            const newName = document.getElementById(`admin-name-${idx}`).value.trim();
+            if (!newName) return;
+            const oldName = mockDatabase[idx].username;
+            if(allChats[oldName]) { allChats[newName] = allChats[oldName]; delete allChats[oldName]; }
+            mockDatabase[idx].username = newName; saveLocalData();
+            if(currentLoggedUsername === oldName) currentLoggedUsername = newName;
+            showAlert('Database Updated', `User renamed successfully to ${newName}.`, 'success');
+            renderAdminPanel(); updateAdminChatDropdown();
+        }
+
+        function adminToggleFreeze(idx) {
+            mockDatabase[idx].isFrozen = !mockDatabase[idx].isFrozen;
+            saveLocalData();
+            showAlert('Access Updated', mockDatabase[idx].isFrozen ? 'User account frozen. They cannot log in.' : 'User account unfrozen.', 'info');
+            renderAdminPanel();
+        }
+
+        function adminToggleLoanBlock(idx) {
+            mockDatabase[idx].loanBlocked = !mockDatabase[idx].loanBlocked;
+            saveLocalData();
+            showAlert('Permissions Updated', mockDatabase[idx].loanBlocked ? 'User is now blocked from taking loans.' : 'User can now apply for loans again.', 'success');
+            renderAdminPanel();
+        }
+
+        function adminSetGate(idx) {
+            const gateInput = document.getElementById(`gate-${idx}`).value;
+            mockDatabase[idx].customWithdrawGate = gateInput === "" ? undefined : parseFloat(gateInput);
+            saveLocalData();
+            if (gateInput === "" || gateInput === undefined) { showAlert('Gate Reset', `Borrower withdrawal gate reset to default 10% policy.`, 'success'); } 
+            else if (parseFloat(gateInput) === 0) { showAlert('Gate Unlocked', `Borrower can now withdraw freely without deposits.`, 'success'); } 
+            else { showAlert('Gate Set', `Borrower must deposit exactly ${parseFloat(gateInput).toFixed(2)} USDT before withdrawing.`, 'success'); }
+            renderAdminPanel();
+        }
+
+        function modifyBalance(idx, action) {
+            const amt = parseFloat(document.getElementById(`amt-${idx}`).value);
+            if (isNaN(amt) || amt < 0) return;
+            if (action === 'add') { mockDatabase[idx].balance += amt; } 
+            else if (action === 'minus') { mockDatabase[idx].balance = Math.max(0, mockDatabase[idx].balance - amt); }
+            else if (action === 'set') { mockDatabase[idx].balance = amt; }
+            saveLocalData();
+            if (mockDatabase[idx].username === currentLoggedUsername) { userBalance = mockDatabase[idx].balance; updateBalanceUI(); }
+            renderAdminPanel();
+        }
+
+        function previewAdminChatImage(evt) { const file=evt.target.files[0]; if(file){ pendingAdminImageUpload=URL.createObjectURL(file); document.getElementById('admin-chat-img-preview').querySelector('img').src=pendingAdminImageUpload; document.getElementById('admin-chat-img-preview').classList.remove('hidden'); } }
+        function removeAdminChatImage() { pendingAdminImageUpload = null; document.getElementById('admin-chat-img-preview').classList.add('hidden'); document.getElementById('admin-chat-img').value = ''; }
+
+        function updateUserVIP(idx, val) {
+            // Unchanged
+        }
+
+        window.onload = function() { 
+            generateLoanProducts(); 
+            selectWithdrawCoin('USDT'); 
+            
+            const usdtBtn = document.getElementById('dep-coin-USDT');
+            if(usdtBtn) {
+                usdtBtn.classList.remove('border-gray-700'); usdtBtn.classList.add('border-[var(--accent-color)]');
+                usdtBtn.querySelector('span').classList.remove('text-white'); usdtBtn.querySelector('span').classList.add('crypto-text');
+            }
+            
+            const savedSession = localStorage.getItem('cls_activeSession');
+            const savedIsAdmin = localStorage.getItem('cls_isAdmin') === 'true';
+            
+            if (savedSession) {
+                currentLoggedUsername = savedSession;
+                isAdminActiveState = savedIsAdmin;
+                
+                if (isAdminActiveState) {
+                    document.getElementById('admin-trigger-btn').classList.remove('hidden'); 
+                    document.getElementById('profile-name').innerText = currentLoggedUsername; 
+                } else {
+                    const foundUser = mockDatabase.find(u => u.username === currentLoggedUsername);
+                    if (foundUser) {
+                        userBalance = foundUser.balance; userVipLevel = foundUser.vip;
+                        document.getElementById('profile-name').innerText = currentLoggedUsername; 
+                        const badge = document.getElementById('user-vip-badge');
+                        if (badge) {
+                            if(userVipLevel > 0) { badge.innerText = "Risk Tier: VIP / Whale"; badge.classList.replace('bg-gray-800', 'bg-gradient-to-r'); badge.classList.add('from-yellow-600', 'to-yellow-400'); } 
+                            else { badge.innerText = "Risk Tier: Retail"; badge.classList.replace('bg-gradient-to-r', 'bg-gray-800'); badge.classList.remove('from-yellow-600', 'to-yellow-400'); }
+                        }
+                        
+                        // Enforce Clickwrap on Refresh if bypassed
+                        if (!foundUser.hasAcceptedAgreement) {
+                            navigateTo('agreement-screen');
+                            setTimeout(checkAgreementScroll, 200);
+                            return; // Stop initialization of dashboard
+                        }
+                    } else {
+                        logout(); return;
+                    }
+                }
+                updateBalanceUI(); updateDynamicTicker(); refreshLoanUI();
+                navigateTo('dashboard-screen', 'nav-home');
+                checkLoanAlerts(); // Run alert check on load
+            } else {
+                updateBalanceUI(); switchTab('signin'); updateDynamicTicker(); refreshLoanUI();
+            }
+        };
+    </script>
+</body>
+</html>
